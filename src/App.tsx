@@ -17,7 +17,6 @@ function App() {
 
         <Routes>
           <Route path="/" element={<ProjectList />} />
-          <Route path="/projects/new" element={<CreateProject />} />
         </Routes>
       </BrowserRouter>
     </>
