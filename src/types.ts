@@ -3,3 +3,21 @@ export type Project = {
     title: string;
     description: string;
 }
+export type User = {
+    id: number;
+    name: string;
+    surname: string
+}
+export type Priority = "low" | "middle" | "high";
+export type State = "todo" | "doing" | "done";
+export type Story = {
+    id: number;
+    title: string;
+    description: string;
+    priority: Priority;
+    projectId: number;
+    CreatedAt: Date;
+    state: State;
+    ownerId: number;
+}
+export type StoryModel = Omit<Story, "id" | "projectId" | "ownerId">

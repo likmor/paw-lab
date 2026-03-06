@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import ProjectItem from "./ProjectItem";
+import ProjectItem from "./ProjectListItem";
 import type { Project } from "./types";
 import { loadProjects, saveProjects } from "./utils/localStorageUtils";
-import CreateProject from "./CreateProject";
+import CreateProjectModal from "./CreateProjectModal";
 
 function ProjectList() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -35,11 +35,8 @@ function ProjectList() {
   return (
     <div className="">
       <h2>Project list</h2>
-      <button className="btn btn-primary" onClick={() => setAdd(!add)}>
-        Add
-      </button>
-
-      {add && <CreateProject add={addProject} />}
+      <button className="btn" onClick={() => setAdd(!add)}>Add project</button>
+      <CreateProjectModal visible={add} setVisible={setAdd} add={addProject} />
 
       <div className="grid justify-center gap-2">
         {projects.map((el) => (

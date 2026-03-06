@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import type { Project } from "./types";
+import { useNavigate } from "react-router-dom";
 
-type ProjectItemProps = {
+type ProjectListItemProps = {
   item: Project;
   onDelete: (id: number) => void;
   onUpdate: (item: Project) => void;
 };
-function ProjectItem({ item, onDelete, onUpdate }: ProjectItemProps) {
+function ProjectListItem({ item, onDelete, onUpdate }: ProjectListItemProps) {
+const nav = useNavigate();
+
   const [isUpdate, setIsUpdate] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -22,8 +25,12 @@ function ProjectItem({ item, onDelete, onUpdate }: ProjectItemProps) {
     }
     setIsUpdate(!isUpdate);
   }
+
+  function HandleClick() {
+    nav(`/project/${item.id}`)
+  }
   return (
-    <div className="card card-border bg-base-200 w-96">
+    <div className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300" onClick={HandleClick}>
       <div className="card-body">
         {isUpdate ? (
           <input
@@ -59,4 +66,4 @@ function ProjectItem({ item, onDelete, onUpdate }: ProjectItemProps) {
     </div>
   );
 }
-export default ProjectItem;
+export default ProjectListItem;
