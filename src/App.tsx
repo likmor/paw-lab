@@ -1,25 +1,33 @@
-import './App.css'
-import ProjectList from './ProjectList'
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
-import UserManager from './utils/userManager'
-import Project from './Project'
+import "./App.css";
+import ProjectList from "./ProjectList";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+} from "react-router-dom";
+import Project from "./Project";
+import { api } from "./api/api";
+import Home from "./Home";
+import Menu from "./Menu";
 
 function App() {
-
   return (
     <>
       <BrowserRouter>
-        <h1><Link to="/">ManageMe</Link></h1>
-        <h1 className="pb-4">user: {UserManager.GetUser().name} {UserManager.GetUser().surname}</h1>
+        <Menu />
 
+        <h1 className="pb-4 text-2xl">
+          user: {api.getUser().name} {api.getUser().surname}
+        </h1>
 
         <Routes>
-          <Route path="/" element={<ProjectList />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/projects" element={<ProjectList />} />
           <Route path="/project/:id" element={<Project />} />
         </Routes>
       </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

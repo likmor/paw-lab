@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type BaseSyntheticEvent } from "react";
 import type { Project } from "./types";
 import { useNavigate } from "react-router-dom";
+import { api } from "./api/api";
 
 type ProjectListItemProps = {
   item: Project;
@@ -8,7 +9,7 @@ type ProjectListItemProps = {
   onUpdate: (item: Project) => void;
 };
 function ProjectListItem({ item, onDelete, onUpdate }: ProjectListItemProps) {
-const nav = useNavigate();
+  const nav = useNavigate();
 
   const [isUpdate, setIsUpdate] = useState(false);
   const [title, setTitle] = useState("");
@@ -17,20 +18,32 @@ const nav = useNavigate();
   useEffect(() => {
     setTitle(item.title);
     setDescription(item.description);
-  }, []);
+  }, [item]);
 
-  function Update() {
+  function HandleClick() {
+    if (!isUpdate) {
+      api.setActiveProject(Number(item.id));
+      nav(`/project/${item.id}`);
+    }
+  }
+
+  function HandleUpdate(e: BaseSyntheticEvent) {
+    e.stopPropagation();
     if (isUpdate) {
       onUpdate({ id: item.id, title, description });
     }
     setIsUpdate(!isUpdate);
   }
 
-  function HandleClick() {
-    nav(`/project/${item.id}`)
+  function HandleDelete(e: BaseSyntheticEvent) {
+    e.stopPropagation();
+    onDelete(item.id);
   }
   return (
-    <div className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300" onClick={HandleClick}>
+    <div
+      className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300"
+      onClick={HandleClick}
+    >
       <div className="card-body">
         {isUpdate ? (
           <input
@@ -55,10 +68,10 @@ const nav = useNavigate();
           <p>{item.description}</p>
         )}
         <div className="card-actions justify-end">
-          <button className="btn btn-info" onClick={() => Update()}>
-            {isUpdate ? "Save" : "Update"}
+          <button className="btn btn-info" onClick={(e) => HandleUpdate(e)}>
+            {isUpdate ? "Save" : "Edit"}
           </button>
-          <button className="btn btn-error" onClick={() => onDelete(item.id)}>
+          <button className="btn btn-error" onClick={(e) => HandleDelete(e)}>
             Delete
           </button>
         </div>

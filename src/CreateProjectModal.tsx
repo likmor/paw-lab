@@ -1,9 +1,9 @@
-import type { Project } from "./types";
+import type { Project, ProjectModel } from "./types";
 
 type CreateProjectModalProps = {
   visible: boolean;
   setVisible: (visible: boolean) => void;
-  add: (item: Project) => void;
+  add: (item: ProjectModel) => void;
 }
 
 function CreateProjectModal({ visible, setVisible, add }: CreateProjectModalProps) {
@@ -13,8 +13,7 @@ function CreateProjectModal({ visible, setVisible, add }: CreateProjectModalProp
 
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
-    const newProject: Project = {
-      id: 1,
+    const newProject: ProjectModel = {
       title,
       description,
     };

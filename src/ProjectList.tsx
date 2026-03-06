@@ -1,54 +1,66 @@
 import { useEffect, useState } from "react";
 import ProjectItem from "./ProjectListItem";
-import type { Project } from "./types";
-import { loadProjects, saveProjects } from "./utils/localStorageUtils";
+import type { Project, ProjectModel } from "./types";
 import CreateProjectModal from "./CreateProjectModal";
+import { api } from "./api/api";
+import { useNavigate } from "react-router-dom";
 
 function ProjectList() {
+  const nav = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [add, setAdd] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  function LoadProjects() {
+    setProjects(api.getProjects());
+  }
   useEffect(() => {
-    setProjects(loadProjects());
-  }, [localStorage]);
+    LoadProjects();
+  }, []);
 
-  function addProject(item: Project) {
-    let max = 0;
-    if (projects.length > 0) {
-      max = Math.max(...projects.map((el) => el.id));
-      max += 1;
-    }
-    item.id = max;
-    setProjects([...projects, item]);
-    saveProjects([...projects, item]);
+  function addProject(model: ProjectModel) {
+    api.createProject(model);
+    LoadProjects();
   }
+
   function deleteProject(id: number) {
-    const filtered = projects.filter((el) => el.id !== id);
-    setProjects(filtered);
-    saveProjects(filtered);
+    api.deleteProject(id);
+    LoadProjects();
   }
-  function updateProject(item: Project) {
-    const updatedProjects = projects.map((p) => (p.id === item.id ? item : p));
-    setProjects([...updatedProjects]);
-    saveProjects(updatedProjects);
+
+  function updateProject(project: Project) {
+    api.updateProject(project);
+    LoadProjects();
   }
+
   return (
-    <div className="">
+    <div>
       <h2>Project list</h2>
-      <button className="btn" onClick={() => setAdd(!add)}>Add project</button>
-      <CreateProjectModal visible={add} setVisible={setAdd} add={addProject} />
+
+      <button
+        className="btn"
+        onClick={() => setIsCreateModalOpen((prev) => !prev)}
+      >
+        Add project
+      </button>
+
+      <CreateProjectModal
+        visible={isCreateModalOpen}
+        setVisible={setIsCreateModalOpen}
+        add={addProject}
+      />
 
       <div className="grid justify-center gap-2">
-        {projects.map((el) => (
+        {projects.map((project) => (
           <ProjectItem
-            key={el.id}
-            item={el}
+            key={project.id}
+            item={project}
             onDelete={deleteProject}
             onUpdate={updateProject}
-          ></ProjectItem>
+          />
         ))}
       </div>
     </div>
   );
 }
+
 export default ProjectList;
