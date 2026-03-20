@@ -29,7 +29,7 @@ function CreateProjectModal({ visible, setVisible, add }: CreateProjectModalProp
 
 
   return (
-    <dialog id="my_modal_1" className="modal" open={visible}>
+    <dialog className="modal" open={visible}>
       <form method="dialog" className="modal-box" onSubmit={OnSubmit}>
         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" type="button" onClick={handleClose}>✕</button>
         <div className="flex justify-center">

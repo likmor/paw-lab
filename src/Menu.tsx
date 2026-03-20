@@ -24,6 +24,15 @@ function Menu() {
       >
         Projects
       </h1>
+      <h1
+        className="text-3xl cursor-pointer"
+        onClick={() => {
+          api.deleteActiveProject();
+          nav("/users");
+        }}
+      >
+        Users
+      </h1>
     </div>
   );
 }

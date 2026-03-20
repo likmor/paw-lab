@@ -1,8 +1,19 @@
-import type { Project, ProjectModel, Story, StoryModel, User } from "../types";
+import TaskList from "../tasks/components/TaskList";
+import type {
+  Project,
+  ProjectModel,
+  Story,
+  StoryModel,
+  Task,
+  TaskModel,
+  TaskTodo,
+  User,
+} from "../types";
 import type { AppApi } from "./api";
 
 const PROJECTS_KEY = "projects";
 const STORIES_KEY = "stories";
+const TASKS_KEY = "tasks";
 const ACTIVE_PROJECT_KEY = "activeProject";
 
 export class LocalStorageApi implements AppApi {
@@ -50,11 +61,20 @@ export class LocalStorageApi implements AppApi {
   }
 
   deleteProject(id: number) {
-    const projects = this.getProjects().filter((p) => p.id !== id);
-    const stories = this.load<Story>(STORIES_KEY)
-    const fStories = stories.filter(s => s.projectId !== id)
-    this.save(PROJECTS_KEY, projects);
-    this.save(STORIES_KEY, fStories);
+    const stories = this.load<Story>(STORIES_KEY).filter(
+      (s) => s.projectId !== id,
+    );
+    const storyIds = new Set(stories.map((s) => s.id));
+    const tasks = this.load<Task>(TASKS_KEY).filter((t) =>
+      storyIds.has(t.storyId),
+    );
+
+    this.save(
+      PROJECTS_KEY,
+      this.getProjects().filter((p) => p.id !== id),
+    );
+    this.save(STORIES_KEY, stories);
+    this.save(TASKS_KEY, tasks);
   }
 
   setActiveProject(id: number) {
@@ -73,6 +93,10 @@ export class LocalStorageApi implements AppApi {
   getStories(projectId: number): Story[] {
     const stories = this.load<Story>(STORIES_KEY);
     return stories.filter((s) => s.projectId === projectId);
+  }
+  getStory(storyId: number): Story {
+    const stories = this.load<Story>(STORIES_KEY);
+    return stories.filter((s) => s.id === storyId)[0];
   }
 
   createStory(model: StoryModel, projectId: number): Story {
@@ -102,10 +126,126 @@ export class LocalStorageApi implements AppApi {
 
   deleteStory(id: number) {
     const stories = this.load<Story>(STORIES_KEY).filter((s) => s.id !== id);
+    const tasks = this.load<Task>(TASKS_KEY).filter((t) => t.storyId !== id);
     this.save(STORIES_KEY, stories);
+    this.save(TASKS_KEY, tasks);
   }
 
   getUser(): User {
-    return { id: 0, name: "Adam", surname: "Kowalski" };
+    return { id: 0, name: "Adam", surname: "Kowalski", role: "admin" };
+  }
+  getUsers(): User[] {
+    return [
+      this.getUser(),
+      { id: 1, name: "Karol", surname: "Nowak", role: "developer" },
+      { id: 2, name: "Wojciech", surname: "Lewandowski", role: "devops" },
+    ];
+  }
+
+  getTasks(storyId: number): Task[] {
+    return this.load<Task>(TASKS_KEY).filter((t) => t.storyId === storyId);
+  }
+
+  createTask(model: TaskModel): Task {
+    const tasks = this.load<Task>(TASKS_KEY);
+    const task: Task = {
+      ...model,
+      id: Date.now(),
+      createdAt: new Date(),
+      state: "todo",
+    };
+    tasks.push(task);
+    this.save(TASKS_KEY, tasks);
+    this.syncStoryState(task.storyId);
+    return task;
+  }
+
+  updateTask(task: Task): void {
+    const tasks = this.load<Task>(TASKS_KEY).map((t) =>
+      t.id === task.id ? task : t,
+    );
+    this.save(TASKS_KEY, tasks);
+  }
+
+  deleteTask(id: number): void {
+    this.save(
+      TASKS_KEY,
+      this.load<Task>(TASKS_KEY).filter((t) => t.id !== id),
+    );
+  }
+
+  assignUser(
+    taskId: number,
+    user: User & { role: "devops" | "developer" },
+  ): Task {
+    const tasks = this.load<Task>(TASKS_KEY);
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) throw new Error("Task not found");
+
+    const updated: Task = {
+      ...task,
+      state: "doing",
+      startedAt: new Date(),
+      assignedUser: user,
+    };
+
+    this.save(
+      TASKS_KEY,
+      tasks.map((t) => (t.id === taskId ? updated : t)),
+    );
+    this.syncStoryState(task.storyId);
+
+    return updated;
+  }
+
+  completeTask(taskId: number): Task {
+    const tasks = this.load<Task>(TASKS_KEY);
+    const task = tasks.find((t) => t.id === taskId);
+
+    if (!task) {
+      throw new Error("Task not found");
+    }
+    if (task.state !== "doing") {
+      throw new Error("Task not found");
+    }
+
+    const updated: Task = {
+      ...task,
+      state: "done",
+      finishedAt: new Date(),
+    };
+
+    this.save(
+      TASKS_KEY,
+      tasks.map((t) => (t.id === taskId ? updated : t)),
+    );
+    this.syncStoryState(task.storyId);
+
+    return updated;
+  }
+
+  private syncStoryState(storyId: number): void {
+    const stories = this.load<Story>(STORIES_KEY);
+    const story = stories.find((s) => s.id === storyId);
+    if (!story) return;
+
+    const storyTasks = this.load<Task>(TASKS_KEY).filter(
+      (t) => t.storyId === storyId,
+    );
+
+    const allDone =
+      storyTasks.length > 0 && storyTasks.every((t) => t.state === "done");
+    const anyDoing = storyTasks.some(
+      (t) => t.state === "doing" || t.state === "done",
+    );
+
+    const nextState = allDone ? "done" : anyDoing ? "doing" : "todo";
+
+    if (story.state !== nextState) {
+      this.save(
+        STORIES_KEY,
+        stories.map((s) => (s.id === storyId ? { ...s, state: nextState } : s)),
+      );
+    }
   }
 }

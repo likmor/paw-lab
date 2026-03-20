@@ -8,6 +8,7 @@ export type User = {
   id: number;
   name: string;
   surname: string;
+  role: "admin" | "devops" | "developer";
 };
 export type Priority = "low" | "middle" | "high";
 export const priorities: Priority[] = ["low", "middle", "high"];
@@ -26,3 +27,34 @@ export type Story = {
   ownerId: number;
 };
 export type StoryModel = Omit<Story, "id" | "projectId" | "ownerId">;
+
+
+export type TaskBase = {
+  id: number;
+  name: string;
+  description: string;
+  priority: Priority;
+  storyId: number;
+  estimatedTime: number;
+  createdAt: Date;
+};
+
+export type TaskTodo = TaskBase & {
+  state: "todo";
+};
+
+export type TaskDoing = TaskBase & {
+  state: "doing";
+  startedAt: Date;
+  assignedUser: User & { role: "devops" | "developer" };
+};
+
+export type TaskDone = TaskBase & {
+  state: "done";
+  startedAt: Date;
+  finishedAt: Date;
+  assignedUser: User & { role: "devops" | "developer" };
+};
+
+export type Task = TaskTodo | TaskDoing | TaskDone;
+export type TaskModel = Omit<Task, "id" | "projectId">;

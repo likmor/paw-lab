@@ -1,14 +1,12 @@
 import "./App.css";
 import ProjectList from "./ProjectList";
-import {
-  BrowserRouter,
-  Route,
-  Routes,
-} from "react-router-dom";
-import Project from "./Project";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { api } from "./api/api";
 import Home from "./Home";
 import Menu from "./Menu";
+import Users from "./Users";
+import TaskList from "./tasks/components/TaskList";
+import StoryList from "./stories/StoryList";
 
 function App() {
   return (
@@ -22,8 +20,13 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/users" element={<Users />} />
           <Route path="/projects" element={<ProjectList />} />
-          <Route path="/project/:id" element={<Project />} />
+          <Route path="/project/:projectId" element={<StoryList />} />
+          <Route
+            path="/project/:projectId/story/:storyId"
+            element={<TaskList />}
+          />
         </Routes>
       </BrowserRouter>
     </>
