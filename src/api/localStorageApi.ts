@@ -51,7 +51,10 @@ export class LocalStorageApi implements AppApi {
 
   deleteProject(id: number) {
     const projects = this.getProjects().filter((p) => p.id !== id);
+    const stories = this.load<Story>(STORIES_KEY)
+    const fStories = stories.filter(s => s.projectId !== id)
     this.save(PROJECTS_KEY, projects);
+    this.save(STORIES_KEY, fStories);
   }
 
   setActiveProject(id: number) {
