@@ -8,7 +8,7 @@ type TaskItemProps = {
 
 function TaskItem({ item, onDelete, onEdit }: TaskItemProps) {
   return (
-    <div className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300">
+    <div className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300  shadow-xl">
       <div className="card-body">
         <h2 className="card-title">{item.name}</h2>
         <p>{item.description}</p>

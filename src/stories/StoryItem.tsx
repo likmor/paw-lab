@@ -24,7 +24,7 @@ function StoryItem({ item, onDelete, onUpdate, onEdit }: StoryItemProps) {
 
   return (
     <div
-      className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300"
+      className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300  shadow-xl"
       onClick={handleClick}
     >
       <div className="card-body">

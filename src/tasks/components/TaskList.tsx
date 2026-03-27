@@ -54,7 +54,7 @@ function TaskList() {
         <h1 className="text-2xl font-semibold">Project title: {project?.title}</h1>
         <p className="text-base-content/60">Project description: {project?.description}</p>
         <div className="divider" />
-        <h2 className="text-lg font-medium">Story title:{story?.title}</h2>
+        <h2 className="text-lg font-medium">Story title: {story?.title}</h2>
         <p className="text-base-content/60">Story description: {story?.description}</p>
       </div>
 
@@ -81,9 +81,9 @@ function TaskList() {
           onUpdate={updateTask}
         />
       )}
-      <h1 className="text-4xl">Task list</h1>
+      <h2 className="text-2xl mb-4">Tasks</h2>
 
-      <div className="flex flex-row gap-6 justify-center bg-base-200">
+      <div className="flex flex-row gap-6 justify-center bg-base-200 shadow-xl p-4 rounded-lg">
         <div className="flex flex-col gap-2 min-w-96">
           <h2>Todo</h2>
           {todoTasks.map((t) => (

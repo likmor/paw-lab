@@ -131,9 +131,7 @@ function EditTaskModal({ visible, item, setVisible, onUpdate }: Props) {
               <>
                 <div className="divider">Completed</div>
                 <p className="text-sm">
-                  Finished at:{" "}
-                  {"finishedAt" in item &&
-                    new Date(item.finishedAt).toLocaleString()}
+                  {`Finished at: ${"finishedAt" in item && new Date(item.finishedAt).toLocaleString()}`}
                 </p>
               </>
             )}

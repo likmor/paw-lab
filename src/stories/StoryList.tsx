@@ -39,15 +39,20 @@ function StoryList() {
     loadStories();
   }
 
-  const todoStories  = stories.filter((s) => s.state === "todo");
+  const todoStories = stories.filter((s) => s.state === "todo");
   const doingStories = stories.filter((s) => s.state === "doing");
-  const doneStories  = stories.filter((s) => s.state === "done");
+  const doneStories = stories.filter((s) => s.state === "done");
 
   return (
     <>
       <div className="mb-4">
-        <h1 className="text-2xl font-semibold">{project?.title}</h1>
-        <p className="text-base-content/60">{project?.description}</p>
+        <h1 className="text-2xl font-semibold">
+          Project title: {project?.title}
+        </h1>
+        <p className="text-base-content/60">
+          Project description: {project?.description}
+        </p>
+        <div className="divider" />
       </div>
 
       <button className="btn mb-4" onClick={() => setIsCreateOpen(true)}>
@@ -74,23 +79,41 @@ function StoryList() {
       )}
 
       <h2 className="text-2xl mb-4">Stories</h2>
-      <div className="flex flex-row gap-6 justify-center">
+      <div className="flex flex-row gap-6 justify-center bg-base-200 shadow-xl p-4 rounded-lg">
         <div className="flex flex-col gap-2 min-w-96">
           <h3>Todo</h3>
           {todoStories.map((s) => (
-            <StoryItem key={s.id} item={s} onDelete={deleteStory} onUpdate={updateStory} onEdit={setEditStory} />
+            <StoryItem
+              key={s.id}
+              item={s}
+              onDelete={deleteStory}
+              onUpdate={updateStory}
+              onEdit={setEditStory}
+            />
           ))}
         </div>
         <div className="flex flex-col gap-2 min-w-96">
           <h3>Doing</h3>
           {doingStories.map((s) => (
-            <StoryItem key={s.id} item={s} onDelete={deleteStory} onUpdate={updateStory} onEdit={setEditStory} />
+            <StoryItem
+              key={s.id}
+              item={s}
+              onDelete={deleteStory}
+              onUpdate={updateStory}
+              onEdit={setEditStory}
+            />
           ))}
         </div>
         <div className="flex flex-col gap-2 min-w-96">
           <h3>Done</h3>
           {doneStories.map((s) => (
-            <StoryItem key={s.id} item={s} onDelete={deleteStory} onUpdate={updateStory} onEdit={setEditStory} />
+            <StoryItem
+              key={s.id}
+              item={s}
+              onDelete={deleteStory}
+              onUpdate={updateStory}
+              onEdit={setEditStory}
+            />
           ))}
         </div>
       </div>

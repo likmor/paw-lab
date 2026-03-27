@@ -1,7 +1,7 @@
 import { useEffect, useState, type BaseSyntheticEvent } from "react";
-import type { Project } from "./types";
+import type { Project } from "../types";
 import { useNavigate } from "react-router-dom";
-import { api } from "./api/api";
+import { api } from "../api/api";
 
 type ProjectListItemProps = {
   item: Project;
@@ -41,7 +41,7 @@ function ProjectListItem({ item, onDelete, onUpdate }: ProjectListItemProps) {
   }
   return (
     <div
-      className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300"
+      className="card card-border bg-base-200 w-96 cursor-pointer hover:bg-base-300  shadow-xl"
       onClick={HandleClick}
     >
       <div className="card-body">
