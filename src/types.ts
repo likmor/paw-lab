@@ -57,4 +57,19 @@ export type TaskDone = TaskBase & {
 };
 
 export type Task = TaskTodo | TaskDoing | TaskDone;
+
 export type TaskModel = Omit<Task, "id" | "projectId">;
+
+export type NotificationPriority = "low" | "medium" | "high";
+
+export type Notification = {
+  id: number;
+  title: string;
+  message: string;
+  date: string;
+  priority: NotificationPriority;
+  isRead: boolean;
+  recipientId: number;
+};
+
+export type NotificationModel = Omit<Notification, "id" | "date" | "isRead">;

@@ -1,4 +1,4 @@
-import TaskList from "../tasks/components/TaskList";
+import { notificationService } from "../services/notificationService";
 import type {
   Project,
   ProjectModel,
@@ -6,7 +6,6 @@ import type {
   StoryModel,
   Task,
   TaskModel,
-  TaskTodo,
   User,
 } from "../types";
 import type { AppApi } from "./api";
@@ -48,6 +47,17 @@ export class LocalStorageApi implements AppApi {
 
     projects.push(project);
     this.save(PROJECTS_KEY, projects);
+
+    this.getUsers()
+      .filter((u) => u.role === "admin")
+      .forEach((u) =>
+        notificationService.send({
+          title: "New project created",
+          message: `Project "${project.title}" has been created.`,
+          priority: "high",
+          recipientId: u.id,
+        }),
+      );
 
     return project;
   }
@@ -106,7 +116,7 @@ export class LocalStorageApi implements AppApi {
       ...model,
       id: Date.now(),
       createdAt: new Date(),
-      ownerId: 1,
+      ownerId: 0,
       projectId,
     };
 
@@ -157,6 +167,17 @@ export class LocalStorageApi implements AppApi {
     tasks.push(task);
     this.save(TASKS_KEY, tasks);
     this.syncStoryState(task.storyId);
+
+    const story = this.getStory(task.storyId);
+    if (story) {
+      notificationService.send({
+        title: "New task created",
+        message: `Task "${task.name}" was added to story "${story.title}"`,
+        priority: "medium",
+        recipientId: story.ownerId,
+      });
+    }
+
     return task;
   }
 
@@ -168,10 +189,23 @@ export class LocalStorageApi implements AppApi {
   }
 
   deleteTask(id: number): void {
+    const task = this.load<Task>(TASKS_KEY).find((t) => t.id === id);
     this.save(
       TASKS_KEY,
       this.load<Task>(TASKS_KEY).filter((t) => t.id !== id),
     );
+
+    if (task) {
+      const story = this.getStory(task.storyId);
+      if (story) {
+        notificationService.send({
+          title: "Task deleted",
+          message: `Task "${task.name}" was removed from story "${story.title}".`,
+          priority: "medium",
+          recipientId: story.ownerId,
+        });
+      }
+    }
   }
 
   assignUser(
@@ -194,6 +228,16 @@ export class LocalStorageApi implements AppApi {
       tasks.map((t) => (t.id === taskId ? updated : t)),
     );
     this.syncStoryState(task.storyId);
+
+    const story = this.getStory(task.storyId);
+    if (story) {
+      notificationService.send({
+        title: "User assigned to task",
+        message: `${user.name} ${user.surname} was assigned to task "${task.name}" in story "${story.title}".`,
+        priority: "high",
+        recipientId: story.ownerId,
+      });
+    }
 
     return updated;
   }
@@ -221,6 +265,16 @@ export class LocalStorageApi implements AppApi {
     );
     this.syncStoryState(task.storyId);
 
+    const story = this.getStory(task.storyId);
+    if (story) {
+      notificationService.send({
+        title: "Task completed",
+        message: `Task "${task.name}" in story "${story.title}" has been marked as done.`,
+        priority: "medium",
+        recipientId: story.ownerId,
+      });
+    }
+
     return updated;
   }
 
@@ -246,6 +300,13 @@ export class LocalStorageApi implements AppApi {
         STORIES_KEY,
         stories.map((s) => (s.id === storyId ? { ...s, state: nextState } : s)),
       );
+
+      notificationService.send({
+        title: "Story status changed",
+        message: `Story "${story.title}" status changed to "${nextState}".`,
+        priority: nextState === "done" ? "medium" : "low",
+        recipientId: story.ownerId,
+      });
     }
   }
 }

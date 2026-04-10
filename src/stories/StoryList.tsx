@@ -61,7 +61,6 @@ function StoryList() {
 
       {isCreateOpen && (
         <CreateStoryModal
-          key="create"
           visible={isCreateOpen}
           setVisible={setIsCreateOpen}
           onCreate={addStory}
@@ -70,7 +69,6 @@ function StoryList() {
 
       {editStory && (
         <EditStoryModal
-          key={editStory.id}
           visible={!!editStory}
           item={editStory}
           setVisible={(v) => !v && setEditStory(undefined)}
