@@ -4,12 +4,16 @@ export type Project = {
   description: string;
 };
 export type ProjectModel = Omit<Project, "id">;
+export type Role = "admin" | "devops" | "developer" | "guest";
 export type User = {
   id: number;
   name: string;
   surname: string;
-  role: "admin" | "devops" | "developer";
+  role: Role;
+  banned: boolean;
 };
+export const roles: Role[] = ["admin" , "devops" , "developer" , "guest"];
+
 export type Priority = "low" | "middle" | "high";
 export const priorities: Priority[] = ["low", "middle", "high"];
 
@@ -27,7 +31,6 @@ export type Story = {
   ownerId: number;
 };
 export type StoryModel = Omit<Story, "id" | "projectId" | "ownerId">;
-
 
 export type TaskBase = {
   id: number;
@@ -73,3 +76,13 @@ export type Notification = {
 };
 
 export type NotificationModel = Omit<Notification, "id" | "date" | "isRead">;
+
+export type Payload = {
+  sub: number;
+  name: string;
+  family_name: string;
+  given_name: string;
+  email: string;
+  picture: string;
+  exp: number;
+};

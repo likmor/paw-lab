@@ -8,10 +8,10 @@ export function useNotifications(userId: number) {
   );
 
   useEffect(() => {
-    const unsub = notificationService.subscribe(
+    const unsub = notificationService.subscribe(  //subscribe -> receive notifications -> filter and set state
       (
-        all, //subscribe -> receive notifications -> filter and set state
-      ) => setNotifications(all.filter((n) => n.recipientId === userId)),
+        notifications,
+      ) => setNotifications(notifications.filter((n) => n.recipientId === userId)),
     );
     return unsub;
   }, [userId]);

@@ -34,8 +34,11 @@ export type AppApi = {
   assignUser(taskId: number, user: User): Task;
   completeTask(taskId: number): Task;
 
-  getUser(): User;
+  getUser(id: number): User | null;
   getUsers(): User[];
+  addUser(user: User) : User;
+  updateUser(user: User) : User;
+
 };
 
 export const api: AppApi = new LocalStorageApi();

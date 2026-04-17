@@ -5,11 +5,14 @@ import { useEffect, useState } from "react";
 import { useNotifications } from "./hooks/useNotifications";
 import type { Notification } from "./types";
 import NotificationModal from "./NotificationModal";
+import { useAuth } from "./context/authContext";
 
 function Menu() {
+  const { user } = useAuth();
+
   const nav = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
-    useNotifications(api.getUser().id);
+    useNotifications(user?.id ?? -1);
   const [notification, setNotification] = useState<Notification | undefined>();
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light",
@@ -71,22 +74,26 @@ function Menu() {
               Projects
             </a>
           </li>
-          <li>
-            <a
-              onClick={() => {
-                nav("/users");
-                api.deleteActiveProject();
-              }}
-            >
-              Users
-            </a>
-          </li>
+          {user?.role === "admin" && (
+            <li>
+              <a
+                onClick={() => {
+                  nav("/users");
+                  api.deleteActiveProject();
+                }}
+              >
+                Users
+              </a>
+            </li>
+          )}
         </ul>
       </div>
 
       <div className="navbar-end gap-2">
         <h1 className="text-xl">
-          {`Logged in as: ${api.getUser().name} ${api.getUser().surname}`}
+          {user == null
+            ? "Not logged in"
+            : `Logged in as: ${user.name} ${user.surname}`}
         </h1>
         <div className="dropdown dropdown-center">
           <button className="btn btn-ghost btn-circle" tabIndex={0}>

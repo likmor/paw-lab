@@ -14,6 +14,7 @@ const PROJECTS_KEY = "projects";
 const STORIES_KEY = "stories";
 const TASKS_KEY = "tasks";
 const ACTIVE_PROJECT_KEY = "activeProject";
+const USERS_KEY = "users";
 
 export class LocalStorageApi implements AppApi {
   private load<T>(key: string): T[] {
@@ -141,15 +142,17 @@ export class LocalStorageApi implements AppApi {
     this.save(TASKS_KEY, tasks);
   }
 
-  getUser(): User {
-    return { id: 0, name: "Adam", surname: "Kowalski", role: "admin" };
+  getUser(id : number): User | null {
+    return this.load<User>(USERS_KEY).find(u => u.id === id) ?? null
   }
+  
   getUsers(): User[] {
-    return [
-      this.getUser(),
-      { id: 1, name: "Karol", surname: "Nowak", role: "developer" },
-      { id: 2, name: "Wojciech", surname: "Lewandowski", role: "devops" },
-    ];
+    return this.load<User>(USERS_KEY)
+    // return [
+    //   this.getUser(),
+    //   { id: 1, name: "Karol", surname: "Nowak", role: "developer", banned: false },
+    //   { id: 2, name: "Wojciech", surname: "Lewandowski", role: "devops", banned: true },
+    // ];
   }
 
   getTasks(storyId: number): Task[] {
@@ -308,5 +311,32 @@ export class LocalStorageApi implements AppApi {
         recipientId: story.ownerId,
       });
     }
+  }
+  public addUser(user: User) {
+    const users = this.load<User>(USERS_KEY);
+    users.push(user);
+    this.notifyNewRegister(user);
+    this.save(USERS_KEY, users);
+    return user;
+  }
+
+  public updateUser(user: User) {
+    const users = this.load<User>(USERS_KEY).map((u) =>
+      u.id == user.id ? user : u,
+    );
+    this.save(USERS_KEY, users);
+    return user;
+  }
+  private notifyNewRegister(user: User) {
+    this.getUsers()
+      .filter((u) => u.role === "admin")
+      .forEach((u) =>
+        notificationService.send({
+          title: "New user created",
+          message: `User "${user.name}" has been created.`,
+          priority: "high",
+          recipientId: u.id,
+        }),
+      );
   }
 }
