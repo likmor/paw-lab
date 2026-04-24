@@ -1,9 +1,9 @@
 import { useState, type BaseSyntheticEvent } from "react";
-import { priorities, type Priority, type TaskModel } from "../../types";
+import { priorities, type Priority, type TaskModel } from "../../../types";
 
 type Props = {
   visible: boolean;
-  storyId: number;
+  storyId: string;
   setVisible: (visible: boolean) => void;
   onCreate: (item: TaskModel) => void;
 };
@@ -16,7 +16,7 @@ function CreateTaskModal({ visible, storyId, setVisible, onCreate }: Props) {
 
   function onSubmit(e: BaseSyntheticEvent) {
     e.preventDefault();
-    onCreate({ name, description, priority, estimatedTime, storyId, state: "todo", createdAt: new Date() });
+    onCreate({ name, description, priority, estimatedTime, storyId, state: "todo" });
     setVisible(false);
   }
 

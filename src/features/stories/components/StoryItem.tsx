@@ -1,10 +1,10 @@
 import type { BaseSyntheticEvent } from "react";
-import type { Story } from "../types";
+import type { Story } from "../../../types";
 import { useNavigate, useParams } from "react-router-dom";
 
 type StoryItemProps = {
   item: Story;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onUpdate: (item: Story) => void;
   onEdit: (item: Story) => void;
 };

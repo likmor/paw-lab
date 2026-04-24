@@ -1,23 +1,29 @@
 import { useParams } from "react-router-dom";
-import type { Story, StoryModel } from "../types";
+import type { Project, Story, StoryModel } from "../../../types";
 import { useEffect, useState } from "react";
-import CreateStoryModal from "./CreateStoryModal";
-import EditStoryModal from "./EditStoryModal";
-import { api } from "../api/api";
+import CreateStoryModal from "../modals/CreateStoryModal";
+import EditStoryModal from "../modals/EditStoryModal";
+import { api } from "../../../config";
 import StoryItem from "./StoryItem";
+import { useAuth } from "../../../context/authContext";
 
 type Params = { projectId: string };
 
 function StoryList() {
   const { projectId } = useParams<Params>();
-  const project = api.getProject(Number(projectId));
+  const {user} =  useAuth()
+  const [project, setProject] = useState<Project | null>(null);
+
+  useEffect(() => {
+    if (projectId) api.getProject(projectId).then(setProject);
+  }, [projectId]);
 
   const [stories, setStories] = useState<Story[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editStory, setEditStory] = useState<Story | undefined>();
 
-  function loadStories() {
-    setStories(api.getStories(project?.id ?? -1));
+  async function loadStories() {
+    setStories(await api.getStories(projectId ?? ""));
   }
 
   useEffect(() => {
@@ -25,17 +31,17 @@ function StoryList() {
   }, [projectId]);
 
   function addStory(model: StoryModel) {
-    api.createStory(model, project?.id ?? -1);
+    api.createStory(model, projectId ?? "", user?.id ?? "");
     loadStories();
   }
 
-  function deleteStory(id: number) {
-    api.deleteStory(id);
+  async function deleteStory(id: string) {
+    await api.deleteStory(projectId ?? "", id);
     loadStories();
   }
 
-  function updateStory(story: Story) {
-    api.updateStory(story);
+  async function updateStory(story: Story) {
+    await api.updateStory(projectId ?? "", story);
     loadStories();
   }
 

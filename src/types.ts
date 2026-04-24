@@ -1,12 +1,12 @@
 export type Project = {
-  id: number;
+  id: string;
   title: string;
   description: string;
 };
 export type ProjectModel = Omit<Project, "id">;
 export type Role = "admin" | "devops" | "developer" | "guest";
 export type User = {
-  id: number;
+  id: string;
   name: string;
   surname: string;
   role: Role;
@@ -21,25 +21,25 @@ export type State = "todo" | "doing" | "done";
 export const states: State[] = ["todo", "doing", "done"];
 
 export type Story = {
-  id: number;
+  id: string;
   title: string;
   description: string;
   priority: Priority;
-  projectId: number;
-  createdAt: Date;
+  projectId: string;
+  createdAt: string;
   state: State;
-  ownerId: number;
+  ownerId: string;
 };
-export type StoryModel = Omit<Story, "id" | "projectId" | "ownerId">;
+export type StoryModel = Omit<Story, "id" | "projectId" | "ownerId" | "createdAt">;
 
 export type TaskBase = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   priority: Priority;
-  storyId: number;
+  storyId: string;
   estimatedTime: number;
-  createdAt: Date;
+  createdAt: string;
 };
 
 export type TaskTodo = TaskBase & {
@@ -48,37 +48,37 @@ export type TaskTodo = TaskBase & {
 
 export type TaskDoing = TaskBase & {
   state: "doing";
-  startedAt: Date;
+  startedAt: string;
   assignedUser: User & { role: "devops" | "developer" };
 };
 
 export type TaskDone = TaskBase & {
   state: "done";
-  startedAt: Date;
-  finishedAt: Date;
+  startedAt: string;
+  finishedAt: string;
   assignedUser: User & { role: "devops" | "developer" };
 };
 
 export type Task = TaskTodo | TaskDoing | TaskDone;
 
-export type TaskModel = Omit<Task, "id" | "projectId">;
+export type TaskModel = Omit<Task, "id" | "projectId" | "createdAt">;
 
 export type NotificationPriority = "low" | "medium" | "high";
 
 export type Notification = {
-  id: number;
+  id: string;
   title: string;
   message: string;
   date: string;
   priority: NotificationPriority;
   isRead: boolean;
-  recipientId: number;
+  recipientId: string;
 };
 
 export type NotificationModel = Omit<Notification, "id" | "date" | "isRead">;
 
 export type Payload = {
-  sub: number;
+  sub: string;
   name: string;
   family_name: string;
   given_name: string;

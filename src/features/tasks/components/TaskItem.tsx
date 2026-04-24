@@ -1,8 +1,8 @@
-import type { Task } from "../../types";
+import type { Task } from "../../../types";
 
 type TaskItemProps = {
   item: Task;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onEdit: (item: Task) => void;
 };
 

@@ -1,17 +1,25 @@
-import { useState } from "react";
-import { api } from "./api/api";
+import { useEffect, useState } from "react";
+import { api } from "./config";
 import { roles, type Role, type User } from "./types";
 
 function Users() {
-  const [users, setUsers] = useState<User[]>(api.getUsers());
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const users = await api.getUsers();
+      setUsers(users);
+    };
+    fetchUsers();
+  }, []);
 
   const handleRoleChange = (user: User, role: Role) => {
-    setUsers(users.map(u => u.id === user.id ? { ...u, role } : u));
+    setUsers(users.map((u) => (u.id === user.id ? { ...u, role } : u)));
     api.updateUser({ ...user, role });
   };
 
   const handleBanChange = (user: User, banned: boolean) => {
-    setUsers(users.map(u => u.id === user.id ? { ...u, banned } : u));
+    setUsers(users.map((u) => (u.id === user.id ? { ...u, banned } : u)));
     api.updateUser({ ...user, banned });
   };
 

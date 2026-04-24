@@ -1,4 +1,4 @@
-import { notificationService } from "../services/notificationService";
+import { notificationService } from "../config";
 import type {
   Project,
   ProjectModel,
@@ -32,24 +32,22 @@ export class LocalStorageApi implements AppApi {
     localStorage.setItem(key, JSON.stringify(data));
   }
 
-  getProjects(): Project[] {
-    return this.load<Project>(PROJECTS_KEY);
+  getProjects(): Promise<Project[]> {
+    return Promise.resolve(this.load<Project>(PROJECTS_KEY));
   }
 
-  getProject(id: number): Project | null {
-    return this.getProjects().find((p) => p.id === id) ?? null;
+  getProject(id: string): Promise<Project | null> {
+    return this.getProjects().then(
+      (projects) => projects.find((p) => p.id === id) ?? null,
+    );
   }
 
-  createProject(model: ProjectModel): Project {
-    const projects = this.getProjects();
-    let max = projects.reduce((prev, cur) => Math.max(prev, cur.id), 0) + 1;
-    console.log(max);
-    const project: Project = { id: max, ...model };
-
+  async createProject(model: ProjectModel): Promise<Project> {
+    const projects = await this.getProjects();
+    const project: Project = { id: Date.now().toString(), ...model };
     projects.push(project);
     this.save(PROJECTS_KEY, projects);
-
-    this.getUsers()
+    (await this.getUsers())
       .filter((u) => u.role === "admin")
       .forEach((u) =>
         notificationService.send({
@@ -59,19 +57,20 @@ export class LocalStorageApi implements AppApi {
           recipientId: u.id,
         }),
       );
-
     return project;
   }
 
-  updateProject(project: Project) {
-    const projects = this.getProjects().map((p) =>
+  async updateProject(project: Project): Promise<void> {
+    const projects = await this.getProjects();
+    const updatedProjects = projects.map((p) =>
       p.id === project.id ? project : p,
     );
 
-    this.save(PROJECTS_KEY, projects);
+    this.save(PROJECTS_KEY, updatedProjects);
+    return Promise.resolve();
   }
 
-  deleteProject(id: number) {
+  async deleteProject(id: string): Promise<void> {
     const stories = this.load<Story>(STORIES_KEY).filter(
       (s) => s.projectId !== id,
     );
@@ -82,72 +81,81 @@ export class LocalStorageApi implements AppApi {
 
     this.save(
       PROJECTS_KEY,
-      this.getProjects().filter((p) => p.id !== id),
+      (await this.getProjects()).filter((p) => p.id !== id),
     );
     this.save(STORIES_KEY, stories);
     this.save(TASKS_KEY, tasks);
+    return Promise.resolve();
   }
 
-  setActiveProject(id: number) {
-    localStorage.setItem(ACTIVE_PROJECT_KEY, id.toString());
+  setActiveProject(id: string) {
+    localStorage.setItem(ACTIVE_PROJECT_KEY, id);
   }
 
   deleteActiveProject() {
     localStorage.removeItem(ACTIVE_PROJECT_KEY);
   }
 
-  getActiveProject(): number | null {
+  getActiveProject(): Promise<string | null> {
     const id = localStorage.getItem(ACTIVE_PROJECT_KEY);
-    return id ? Number(id) : null;
+    return id ? Promise.resolve(id) : Promise.resolve(null);
   }
 
-  getStories(projectId: number): Story[] {
+  getStories(projectId: string): Promise<Story[]> {
     const stories = this.load<Story>(STORIES_KEY);
-    return stories.filter((s) => s.projectId === projectId);
+    return Promise.resolve(stories.filter((s) => s.projectId === projectId));
   }
-  getStory(storyId: number): Story {
+  getStory(projectId: string, storyId: string): Promise<Story | null> {
     const stories = this.load<Story>(STORIES_KEY);
-    return stories.filter((s) => s.id === storyId)[0];
+    return Promise.resolve(stories.filter((s) => s.id === storyId)[0] ?? null);
   }
 
-  createStory(model: StoryModel, projectId: number): Story {
+  createStory(
+    model: StoryModel,
+    projectId: string,
+    ownerID: string,
+  ): Promise<Story> {
     const stories = this.load<Story>(STORIES_KEY);
 
     const story: Story = {
       ...model,
-      id: Date.now(),
-      createdAt: new Date(),
-      ownerId: 0,
+      id: Date.now().toString(),
+      createdAt: Date.now().toString(),
+      ownerId: ownerID,
       projectId,
     };
 
     stories.push(story);
     this.save(STORIES_KEY, stories);
 
-    return story;
+    return Promise.resolve(story);
   }
 
-  updateStory(story: Story) {
+  updateStory(projectId: string, story: Story): Promise<void> {
     const stories = this.load<Story>(STORIES_KEY).map((s) =>
       s.id === story.id ? story : s,
     );
 
     this.save(STORIES_KEY, stories);
+    return Promise.resolve();
   }
 
-  deleteStory(id: number) {
+  deleteStory(projectId: string, id: string): Promise<void> {
     const stories = this.load<Story>(STORIES_KEY).filter((s) => s.id !== id);
     const tasks = this.load<Task>(TASKS_KEY).filter((t) => t.storyId !== id);
     this.save(STORIES_KEY, stories);
     this.save(TASKS_KEY, tasks);
+    return Promise.resolve();
   }
 
-  getUser(id : number): User | null {
-    return this.load<User>(USERS_KEY).find(u => u.id === id) ?? null
+  getUser(id: string): Promise<User | null> {
+    return Promise.resolve(
+      this.load<User>(USERS_KEY).find((u) => u.id === id) ?? null,
+    );
   }
-  
-  getUsers(): User[] {
-    return this.load<User>(USERS_KEY)
+
+  getUsers(): Promise<User[]> {
+    return Promise.resolve(this.load<User>(USERS_KEY));
     // return [
     //   this.getUser(),
     //   { id: 1, name: "Karol", surname: "Nowak", role: "developer", banned: false },
@@ -155,23 +163,25 @@ export class LocalStorageApi implements AppApi {
     // ];
   }
 
-  getTasks(storyId: number): Task[] {
-    return this.load<Task>(TASKS_KEY).filter((t) => t.storyId === storyId);
+  getTasks(projectId: string, storyId: string): Promise<Task[]> {
+    return Promise.resolve(
+      this.load<Task>(TASKS_KEY).filter((t) => t.storyId === storyId),
+    );
   }
 
-  createTask(model: TaskModel): Task {
+  async createTask(model: TaskModel, projectId: string): Promise<Task> {
     const tasks = this.load<Task>(TASKS_KEY);
     const task: Task = {
       ...model,
-      id: Date.now(),
-      createdAt: new Date(),
+      id: Date.now().toString(),
+      createdAt: Date.now().toString(),
       state: "todo",
     };
     tasks.push(task);
     this.save(TASKS_KEY, tasks);
     this.syncStoryState(task.storyId);
 
-    const story = this.getStory(task.storyId);
+    const story = await this.getStory(projectId, task.storyId);
     if (story) {
       notificationService.send({
         title: "New task created",
@@ -181,25 +191,26 @@ export class LocalStorageApi implements AppApi {
       });
     }
 
-    return task;
+    return Promise.resolve(task);
   }
 
-  updateTask(task: Task): void {
+  updateTask(projectId: string, task: Task): Promise<void> {
     const tasks = this.load<Task>(TASKS_KEY).map((t) =>
       t.id === task.id ? task : t,
     );
     this.save(TASKS_KEY, tasks);
+    return Promise.resolve();
   }
 
-  deleteTask(id: number): void {
-    const task = this.load<Task>(TASKS_KEY).find((t) => t.id === id);
+  async deleteTask(projectId: string, storyId: string, taskId: string): Promise<void> {
+    const task = this.load<Task>(TASKS_KEY).find((t) => t.id === taskId);
     this.save(
       TASKS_KEY,
-      this.load<Task>(TASKS_KEY).filter((t) => t.id !== id),
+      this.load<Task>(TASKS_KEY).filter((t) => t.id !== taskId),
     );
 
     if (task) {
-      const story = this.getStory(task.storyId);
+      const story = await this.getStory(projectId, task.storyId);
       if (story) {
         notificationService.send({
           title: "Task deleted",
@@ -209,12 +220,15 @@ export class LocalStorageApi implements AppApi {
         });
       }
     }
+    return Promise.resolve();
   }
 
-  assignUser(
-    taskId: number,
+  async assignUser(
+    projectId: string,
+    storyId: string,
+    taskId: string,
     user: User & { role: "devops" | "developer" },
-  ): Task {
+  ): Promise<Task> {
     const tasks = this.load<Task>(TASKS_KEY);
     const task = tasks.find((t) => t.id === taskId);
     if (!task) throw new Error("Task not found");
@@ -222,7 +236,7 @@ export class LocalStorageApi implements AppApi {
     const updated: Task = {
       ...task,
       state: "doing",
-      startedAt: new Date(),
+      startedAt: Date.now().toString(),
       assignedUser: user,
     };
 
@@ -232,7 +246,7 @@ export class LocalStorageApi implements AppApi {
     );
     this.syncStoryState(task.storyId);
 
-    const story = this.getStory(task.storyId);
+    const story = await this.getStory(projectId,task.storyId);
     if (story) {
       notificationService.send({
         title: "User assigned to task",
@@ -242,10 +256,10 @@ export class LocalStorageApi implements AppApi {
       });
     }
 
-    return updated;
+    return Promise.resolve(updated);
   }
 
-  completeTask(taskId: number): Task {
+  async completeTask(projectId: string, storyId: string, taskId: string): Promise<Task> {
     const tasks = this.load<Task>(TASKS_KEY);
     const task = tasks.find((t) => t.id === taskId);
 
@@ -259,7 +273,7 @@ export class LocalStorageApi implements AppApi {
     const updated: Task = {
       ...task,
       state: "done",
-      finishedAt: new Date(),
+      finishedAt: new Date().toString(),
     };
 
     this.save(
@@ -268,7 +282,7 @@ export class LocalStorageApi implements AppApi {
     );
     this.syncStoryState(task.storyId);
 
-    const story = this.getStory(task.storyId);
+    const story = await this.getStory(projectId, task.storyId);
     if (story) {
       notificationService.send({
         title: "Task completed",
@@ -278,10 +292,10 @@ export class LocalStorageApi implements AppApi {
       });
     }
 
-    return updated;
+    return Promise.resolve(updated);
   }
 
-  private syncStoryState(storyId: number): void {
+  private syncStoryState(storyId: string): void {
     const stories = this.load<Story>(STORIES_KEY);
     const story = stories.find((s) => s.id === storyId);
     if (!story) return;
@@ -317,7 +331,7 @@ export class LocalStorageApi implements AppApi {
     users.push(user);
     this.notifyNewRegister(user);
     this.save(USERS_KEY, users);
-    return user;
+    return Promise.resolve(user);
   }
 
   public updateUser(user: User) {
@@ -325,10 +339,10 @@ export class LocalStorageApi implements AppApi {
       u.id == user.id ? user : u,
     );
     this.save(USERS_KEY, users);
-    return user;
+    return Promise.resolve(user);
   }
-  private notifyNewRegister(user: User) {
-    this.getUsers()
+  private async notifyNewRegister(user: User) {
+    (await this.getUsers())
       .filter((u) => u.role === "admin")
       .forEach((u) =>
         notificationService.send({

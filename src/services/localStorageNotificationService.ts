@@ -2,10 +2,9 @@ import type { Notification, NotificationModel } from "../types";
 
 const NOTIFICATIONS_KEY = "notifications";
 
-type Listener = (notifications: Notification[]) => void;
 
-class NotificationService {
-  private listeners = new Set<Listener>();
+export class LocalStorageNotificationService {
+  private listeners = new Map<string,(notifications: Notification[]) => void>();
 
   private load(): Notification[] {
     try {
@@ -17,25 +16,22 @@ class NotificationService {
 
   private save(notifications: Notification[]) {
     localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
-    this.listeners.forEach((l) => l(notifications));
+    this.listeners.forEach((cb, user) => cb(notifications.filter((n) => n.recipientId === user)));
   }
 
-  subscribe(listener: Listener) {
-    this.listeners.add(listener);
+  subscribe(userId: string, listener: (notifications: Notification[]) => void) {
+    this.listeners.set(userId, listener);
+    this.save([...this.load()]);
     return () => {
-      this.listeners.delete(listener);
+      this.listeners.delete(userId);
     };
   }
 
-  getForUser(userId: number) {
-    return this.load().filter((n) => n.recipientId === userId);
-  }
-
-  send(model: NotificationModel): Notification {
+  public send(model: NotificationModel): Notification {
     const notifications = this.load();
     const notification: Notification = {
       ...model,
-      id: Date.now(),
+      id: Date.now().toString(),
       date: new Date().toISOString(),
       isRead: false,
     };
@@ -43,13 +39,15 @@ class NotificationService {
     return notification;
   }
 
-  markAsRead(id: number) {
+  markAsRead(userId: string | undefined, notificationId: string) {
+    if (!userId) return;
     this.save(
-      this.load().map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+      this.load().map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
     );
   }
 
-  markAllAsRead(userId: number) {
+  markAllAsRead(userId: string | undefined) {
+    if (!userId) return;
     this.save(
       this.load().map((n) =>
         n.recipientId === userId ? { ...n, isRead: true } : n,
@@ -57,5 +55,3 @@ class NotificationService {
     );
   }
 }
-
-export const notificationService = new NotificationService();

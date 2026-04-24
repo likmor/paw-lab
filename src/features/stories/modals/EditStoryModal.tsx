@@ -1,5 +1,5 @@
 import { useState, type BaseSyntheticEvent } from "react";
-import { priorities, type Priority, type Story } from "../types";
+import { priorities, type Priority, type Story } from "../../../types";
 
 type Props = {
   visible: boolean;

@@ -1,6 +1,6 @@
 import "./App.css";
 import { useNavigate } from "react-router-dom";
-import { api } from "./api/api";
+import { api } from "./config";
 import { useEffect, useState } from "react";
 import { useNotifications } from "./hooks/useNotifications";
 import type { Notification } from "./types";
@@ -8,19 +8,31 @@ import NotificationModal from "./NotificationModal";
 import { useAuth } from "./context/authContext";
 
 function Menu() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const nav = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
-    useNotifications(user?.id ?? -1);
+    useNotifications(user?.id);
   const [notification, setNotification] = useState<Notification | undefined>();
+
+  useEffect(() => {
+    if (
+      notifications.map((n) => {
+        if (!n.isRead && (n.priority === "high" || n.priority === "medium")) {
+          setNotification(n);
+        }
+      })
+    ) {
+    }
+  }, [notifications]);
+
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light",
   );
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
-    localStorage.setItem("theme", JSON.stringify(newTheme));
+    localStorage.setItem("theme", newTheme);
     setTheme(newTheme);
   };
 
@@ -36,6 +48,7 @@ function Menu() {
           visible={true}
           item={notification}
           setVisible={(v) => {
+            markAsRead(notification.id);
             if (!v) setNotification(undefined);
           }}
         />
@@ -44,7 +57,7 @@ function Menu() {
         <a
           onClick={() => {
             nav("/home");
-            api.deleteActiveProject();
+            api.deleteActiveProject(user?.id ?? "");
           }}
           className="btn btn-ghost text-xl"
         >
@@ -57,7 +70,7 @@ function Menu() {
             <a
               onClick={() => {
                 nav("/home");
-                api.deleteActiveProject();
+                api.deleteActiveProject(user?.id ?? "");
               }}
             >
               Home
@@ -68,7 +81,7 @@ function Menu() {
             <a
               onClick={() => {
                 nav("/projects");
-                api.deleteActiveProject();
+                api.deleteActiveProject(user?.id ?? "");
               }}
             >
               Projects
@@ -79,7 +92,7 @@ function Menu() {
               <a
                 onClick={() => {
                   nav("/users");
-                  api.deleteActiveProject();
+                  api.deleteActiveProject(user?.id ?? "");
                 }}
               >
                 Users
@@ -90,11 +103,28 @@ function Menu() {
       </div>
 
       <div className="navbar-end gap-2">
-        <h1 className="text-xl">
-          {user == null
-            ? "Not logged in"
-            : `Logged in as: ${user.name} ${user.surname}`}
-        </h1>
+        <div className="dropdown dropdown-end">
+          <div tabIndex={0} role="button" className="btn btn-ghost">
+            <div>
+              <h1 className="text-xl">
+                {user == null
+                  ? "Not logged in"
+                  : `Logged in as: ${user.name} ${user.surname}`}
+              </h1>
+            </div>
+          </div>
+          <ul
+            tabIndex={-1}
+            className="menu dropdown-content bg-base-100 border-base-200 shadow"
+          >
+            {user && (
+              <li>
+                <a onClick={logout}>Logout</a>
+              </li>
+            )}
+          </ul>
+        </div>
+
         <div className="dropdown dropdown-center">
           <button className="btn btn-ghost btn-circle" tabIndex={0}>
             <div className="indicator" role="button">

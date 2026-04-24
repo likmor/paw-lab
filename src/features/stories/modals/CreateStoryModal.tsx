@@ -1,5 +1,5 @@
 import { useState, type BaseSyntheticEvent } from "react";
-import { priorities, type Priority, type StoryModel } from "../types";
+import { priorities, type Priority, type StoryModel } from "../../../types";
 
 type Props = {
   visible: boolean;
@@ -14,7 +14,7 @@ function CreateStoryModal({ visible, setVisible, onCreate }: Props) {
 
   function onSubmit(e: BaseSyntheticEvent) {
     e.preventDefault();
-    onCreate({ title, description, priority,createdAt: new Date(),state: "todo"  });
+    onCreate({ title, description, priority, state: "todo" });
     setVisible(false);
   }
 
@@ -25,7 +25,9 @@ function CreateStoryModal({ visible, setVisible, onCreate }: Props) {
           className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
           type="button"
           onClick={() => setVisible(false)}
-        >✕</button>
+        >
+          ✕
+        </button>
         <div className="flex justify-center">
           <fieldset className="fieldset rounded-box w-xs p-4">
             <legend className="fieldset-legend">New story</legend>
@@ -55,7 +57,9 @@ function CreateStoryModal({ visible, setVisible, onCreate }: Props) {
               onChange={(e) => setPriority(e.target.value as Priority)}
             >
               {priorities.map((p) => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
 

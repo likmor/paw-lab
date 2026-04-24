@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
-import { notificationService } from "../services/notificationService";
+import { notificationService } from "../config";
 import type { Notification } from "../types";
 
-export function useNotifications(userId: number) {
-  const [notifications, setNotifications] = useState<Notification[]>(
-    notificationService.getForUser(userId),
-  );
+export function useNotifications(userId: string | undefined) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    const unsub = notificationService.subscribe(  //subscribe -> receive notifications -> filter and set state
-      (
-        notifications,
-      ) => setNotifications(notifications.filter((n) => n.recipientId === userId)),
+    if (!userId) return;
+    const unsub = notificationService.subscribe(userId, (notifications) =>
+      setNotifications(notifications),
     );
     return unsub;
   }, [userId]);
@@ -22,7 +19,7 @@ export function useNotifications(userId: number) {
     notifications,
     unread,
     unreadCount: unread.length,
-    markAsRead: (id: number) => notificationService.markAsRead(id),
+    markAsRead: (notificationId: string) => notificationService.markAsRead(userId, notificationId),
     markAllAsRead: () => notificationService.markAllAsRead(userId),
   };
 }

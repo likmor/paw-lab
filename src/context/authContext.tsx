@@ -8,7 +8,7 @@ import {
 import { jwtDecode } from "jwt-decode";
 import type { Payload, User } from "../types";
 import type { CredentialResponse } from "@react-oauth/google";
-import { api } from "../api/api";
+import { api, config } from "../config";
 
 type AuthContextType = {
   user: User | null;
@@ -23,14 +23,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const login = (token: CredentialResponse) => {
+  const login = async (token: CredentialResponse) => {
     if (!token.credential) {
       throw new Error();
     }
     const decoded = jwtDecode<Payload>(token.credential);
     sessionStorage.setItem("gsi_credential", token.credential);
 
-    let existing = api.getUser(decoded.sub);
+    let existing = await api.getUser(decoded.sub);
     if (existing) {
       setUser(existing);
     } else {
@@ -38,10 +38,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: decoded.sub,
         name: decoded.given_name,
         surname: decoded.family_name,
-        role: decoded.email == "dgoyman13@gmail.com" ? "admin" : "guest",
+        role: decoded.email === config.adminEmail ? "admin" : "guest",
         banned: false,
       } as User;
-      api.addUser(user);
+      await api.addUser(user);
       setUser(user);
     }
   };
@@ -51,33 +51,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    try {
-      const token = sessionStorage.getItem("gsi_credential");
+    const login = async () => {
+      try {
+        const token = sessionStorage.getItem("gsi_credential");
 
-      if (!token) return;
+        if (!token) return;
 
-      const decoded = jwtDecode<Payload>(token);
-      if (decoded.exp * 1000 > Date.now()) {
-        let existing = api.getUser(decoded.sub);
-        if (existing) {
-          setUser(existing);
+        const decoded = jwtDecode<Payload>(token);
+        if (decoded.exp * 1000 > Date.now()) {
+          let existing = await api.getUser(decoded.sub);
+          if (existing) {
+            setUser(existing);
+          } else {
+            const user = {
+              id: decoded.sub,
+              name: decoded.given_name,
+              surname: decoded.family_name,
+              role: decoded.email === config.adminEmail ? "admin" : "guest",
+              banned: false,
+            } as User;
+            await api.addUser(user);
+            setUser(user);
+          }
         } else {
-          const user = {
-            id: decoded.sub,
-            name: decoded.given_name,
-            surname: decoded.family_name,
-            role: decoded.email == "dgoyman13@gmail.com" ? "admin" : "guest",
-            banned: false,
-          } as User;
-          api.addUser(user);
-          setUser(user);
+          sessionStorage.removeItem("gsi_credential");
         }
-      } else {
-        sessionStorage.removeItem("gsi_credential");
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
+    };
+    login();
   }, []);
 
   return (

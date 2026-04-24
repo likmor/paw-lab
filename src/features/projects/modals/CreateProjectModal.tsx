@@ -1,4 +1,4 @@
-import type { Project, ProjectModel } from "./types";
+import type { ProjectModel } from "../../../types";
 
 type CreateProjectModalProps = {
   visible: boolean;

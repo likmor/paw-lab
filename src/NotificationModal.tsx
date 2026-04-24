@@ -9,9 +9,9 @@ type Props = {
 };
 
 function NotificationModal({ visible, setVisible, item }: Props) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<Priority>("middle");
+//   const [title, setTitle] = useState("");
+//   const [description, setDescription] = useState("");
+//   const [priority, setPriority] = useState<Priority>("middle");
 
   return (
     <dialog className="modal" open={visible}>

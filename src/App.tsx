@@ -1,15 +1,17 @@
 import "./App.css";
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import Home from "./Home";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
 import Menu from "./Menu";
 import Users from "./Users";
-import TaskList from "./tasks/components/TaskList";
-import StoryList from "./stories/StoryList";
-import ProjectList from "./projects/ProjectList";
+import TaskList from "./features/tasks/components/TaskList";
+import StoryList from "./features/stories/components/StoryList";
+import ProjectList from "./features/projects/components/ProjectList";
 import { useAuth } from "./context/authContext";
 import type { ReactNode } from "react";
 import type { Role } from "./types";
-import { GoogleLogin } from "@react-oauth/google";
+import Login from "./pages/Login";
+import Pending from "./pages/Pending";
+import Blocked from "./pages/Blocked";
 
 function App() {
   const user = useAuth();
@@ -21,24 +23,16 @@ function App() {
       <BrowserRouter>
         <Menu />
         <Routes>
-          <Route
-            path="/login"
-            element={
-              <GoogleLogin onSuccess={(r) => user.login(r)}></GoogleLogin>
-            }
-          />
-          <Route
-            path="/pending"
-            element={"oczekiwanie na zatwierdzenie konta"}
-          />
-          <Route path="/blocked" element={"konto jest zablokowane"} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/pending" element={<Pending />} />
+          <Route path="/blocked" element={<Blocked />} />
           <Route
             path="/*"
             element={
               <ProtectedRoute>
                 <Routes>
+                  <Route path="/*" element={<Home />} />
                   <Route path="/home" element={<Home />} />
-                  <Route path="/projects" element={<ProjectList />} />
                   <Route path="/projects" element={<ProjectList />} />
                   <Route path="/project/:projectId" element={<StoryList />} />
                   <Route

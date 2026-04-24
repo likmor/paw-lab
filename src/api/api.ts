@@ -7,38 +7,35 @@ import type {
   TaskModel,
   User,
 } from "../types";
-import { LocalStorageApi } from "./localStorageApi";
 
 export type AppApi = {
-  getProjects(): Project[];
-  getProject(id: number): Project | null;
-  createProject(model: ProjectModel): Project;
-  updateProject(project: Project): void;
-  deleteProject(id: number): void;
+  getProjects(): Promise<Project[] | null>;
+  getProject(id: string): Promise<Project | null>;
+  createProject(model: ProjectModel): Promise<Project>;
+  updateProject(project: Project): Promise<void>;
+  deleteProject(id: string): Promise<void>;
 
-  setActiveProject(id: number): void;
-  getActiveProject(): number | null;
-  deleteActiveProject(): void;
+  setActiveProject(id: string, userId: string): void;
+  getActiveProject(userId: string): Promise<string | null>;
+  deleteActiveProject(userId: string): void;
 
-  getStories(projectId: number): Story[];
-  getStory(storyId: number): Story;
-  createStory(model: StoryModel, projectId: number): Story;
-  updateStory(story: Story): void;
-  deleteStory(id: number): void;
+  getStories(projectId: string): Promise<Story[]>;
+  getStory(projectId: string, storyId: string): Promise<Story | null>;
+  createStory(model: StoryModel,  projectId: string, ownerID: string): Promise<Story>;
+  updateStory(projectId: string, story: Story): Promise<void>;
+  deleteStory(projectId: string, storyId: string): Promise<void>;
 
-  getTasks(storyId: number): Task[];
-  createTask(model: TaskModel): Task;
-  updateTask(task: Task): void;
-  deleteTask(id: number): void;
+  getTasks(projectId: string, storyId: string): Promise<Task[]>;
+  createTask(model: TaskModel, projectId: string): Promise<Task>;
+  updateTask(projectId: string, task: Task): Promise<void>;
+  deleteTask(projectId: string, storyId: string, taskId: string): Promise<void>;
 
-  assignUser(taskId: number, user: User): Task;
-  completeTask(taskId: number): Task;
+  assignUser(projectId: string, storyId: string, taskId: string, user: User): Promise<Task>;
+  completeTask(projectId: string, storyId: string, taskId: string): Promise<Task>;
 
-  getUser(id: number): User | null;
-  getUsers(): User[];
-  addUser(user: User) : User;
-  updateUser(user: User) : User;
-
+  getUser(id: string): Promise<User | null>;
+  getUsers(): Promise<User[]>;
+  addUser(user: User): Promise<User>;
+  updateUser(user: User): Promise<User>;
 };
 
-export const api: AppApi = new LocalStorageApi();

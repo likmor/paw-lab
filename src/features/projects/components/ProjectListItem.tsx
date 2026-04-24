@@ -1,16 +1,17 @@
 import { useEffect, useState, type BaseSyntheticEvent } from "react";
-import type { Project } from "../types";
+import type { Project } from "../../../types";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api/api";
+import { api } from "../../../config";
+import { useAuth } from "../../../context/authContext";
 
 type ProjectListItemProps = {
   item: Project;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onUpdate: (item: Project) => void;
 };
 function ProjectListItem({ item, onDelete, onUpdate }: ProjectListItemProps) {
   const nav = useNavigate();
-
+  const {user} = useAuth();
   const [isUpdate, setIsUpdate] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -22,7 +23,7 @@ function ProjectListItem({ item, onDelete, onUpdate }: ProjectListItemProps) {
 
   function HandleClick() {
     if (!isUpdate) {
-      api.setActiveProject(Number(item.id));
+      api.setActiveProject(item.id, user?.id ?? "");
       nav(`/project/${item.id}`);
     }
   }

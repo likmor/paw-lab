@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { api } from "../../api/api";
-import type { Task, TaskModel } from "../../types";
-import CreateTaskModal from "./CreateTaskModal";
-import EditTaskModal from "./EditTaskModal";
+import { api } from "../../../config";
+import type { Project, Story, Task, TaskModel } from "../../../types";
 import TaskItem from "./TaskItem.tsx";
+import CreateTaskModal from "../modals/CreateTaskModal.tsx";
+import EditTaskModal from "../modals/EditTaskModal.tsx";
 
 type Params = {
   projectId: string;
@@ -13,49 +13,63 @@ type Params = {
 
 function TaskList() {
   const { projectId, storyId } = useParams<Params>();
+  const [project, setProject] = useState<Project | null>();
+  const [story, setStory] = useState<Story | null>();
 
-  const project = api.getProject(Number(projectId));
-  const story = api.getStory(Number(storyId));
+  useEffect(() => {
+    const fetchProjectAndStory = async () => {
+      const project = await api.getProject(projectId ?? "");
+      const story = await api.getStory(projectId ?? "", storyId ?? "");
+      setProject(project ?? null);
+      setStory(story ?? null);
+    };
+    fetchProjectAndStory();
+  }, [projectId, storyId]);
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editTask, setEditTask] = useState<Task | undefined>();
 
-  function loadTasks() {
-    setTasks(api.getTasks(Number(storyId)));
+  async function loadTasks() {
+    setTasks(await api.getTasks(projectId ?? "", storyId ?? ""));
   }
 
   useEffect(() => {
     loadTasks();
   }, [storyId]);
 
-  function addTask(model: TaskModel) {
-    api.createTask(model);
-    loadTasks();
+  async function addTask(model: TaskModel) {
+    await api.createTask(model, projectId ?? "");
+    await loadTasks();
   }
 
-  function deleteTask(id: number) {
-    api.deleteTask(id);
-    loadTasks();
+  async function deleteTask(id: string) {
+    await api.deleteTask(projectId ?? "", storyId ?? "", id);
+    await loadTasks();
   }
 
-  function updateTask(task: Task) {
-    api.updateTask(task);
-    loadTasks();
+  async function updateTask(task: Task) {
+    await api.updateTask(projectId ?? "", task);
+    await loadTasks();
   }
 
   const todoTasks = tasks.filter((t) => t.state === "todo");
   const doingTasks = tasks.filter((t) => t.state === "doing");
   const doneTasks = tasks.filter((t) => t.state === "done");
-  console.log(story);
   return (
     <>
       <div className="mb-4">
-        <h1 className="text-2xl font-semibold">Project title: {project?.title}</h1>
-        <p className="text-base-content/60">Project description: {project?.description}</p>
+        <h1 className="text-2xl font-semibold">
+          Project title: {project?.title}
+        </h1>
+        <p className="text-base-content/60">
+          Project description: {project?.description}
+        </p>
         <div className="divider" />
         <h2 className="text-lg font-medium">Story title: {story?.title}</h2>
-        <p className="text-base-content/60">Story description: {story?.description}</p>
+        <p className="text-base-content/60">
+          Story description: {story?.description}
+        </p>
       </div>
 
       <button className="btn mb-4" onClick={() => setIsCreateOpen(true)}>
@@ -66,7 +80,7 @@ function TaskList() {
         <CreateTaskModal
           key="create"
           visible={isCreateOpen}
-          storyId={Number(storyId)}
+          storyId={storyId ?? ""}
           setVisible={setIsCreateOpen}
           onCreate={addTask}
         />
@@ -79,6 +93,8 @@ function TaskList() {
           item={editTask}
           setVisible={(v) => !v && setEditTask(undefined)}
           onUpdate={updateTask}
+          projectId={projectId ?? ""}
+          storyId={storyId ?? ""}
         />
       )}
       <h2 className="text-2xl mb-4">Tasks</h2>

@@ -1,38 +1,59 @@
-import { useState, type BaseSyntheticEvent } from "react";
-import { priorities, type Priority, type Task, type User } from "../../types";
-import { api } from "../../api/api";
+import { useEffect, useState, type BaseSyntheticEvent } from "react";
+import {
+  priorities,
+  type Priority,
+  type Task,
+  type User,
+} from "../../../types";
+import { api } from "../../../config";
 
 type Props = {
   visible: boolean;
   item: Task;
   setVisible: (visible: boolean) => void;
   onUpdate: (item: Task) => void;
+  projectId: string;
+  storyId: string;
 };
 
-function EditTaskModal({ visible, item, setVisible, onUpdate }: Props) {
+function EditTaskModal({
+  visible,
+  item,
+  setVisible,
+  onUpdate,
+  projectId,
+  storyId,
+}: Props) {
   const [name, setName] = useState(item.name);
   const [description, setDescription] = useState(item.description);
   const [priority, setPriority] = useState<Priority>(item.priority);
   const [estimatedTime, setEstimatedTime] = useState(item.estimatedTime);
+  const [assignableUsers, setAssignableUsers] = useState<User[]>([]);
 
-  const assignableUsers = api
-    .getUsers()
-    .filter((u) => u.role === "devops" || u.role === "developer");
+  useEffect(() => {
+    const fetchAssignableUsers = async () => {
+      const users = await api.getUsers();
+      setAssignableUsers(
+        users.filter((u) => u.role === "admin" || u.role === "developer"),
+      );
+    };
+    fetchAssignableUsers();
+  }, []);
 
-  function onSubmit(e: BaseSyntheticEvent) {
+  async function onSubmit(e: BaseSyntheticEvent) {
     e.preventDefault();
     onUpdate({ ...item, name, description, priority, estimatedTime });
     setVisible(false);
   }
 
-  function handleAssign(user: User) {
-    const updated = api.assignUser(item.id, user);
+  async function handleAssign(user: User) {
+    const updated = await api.assignUser(projectId, storyId, item.id, user);
     onUpdate(updated);
     setVisible(false);
   }
 
-  function handleComplete() {
-    const updated = api.completeTask(item.id);
+  async function handleComplete() {
+    const updated = await api.completeTask(projectId, storyId, item.id);
     onUpdate(updated);
     setVisible(false);
   }
@@ -100,7 +121,7 @@ function EditTaskModal({ visible, item, setVisible, onUpdate }: Props) {
                   value={item.state === "doing" ? item.assignedUser.id : ""}
                   onChange={(e) => {
                     const user = assignableUsers.find(
-                      (u) => u.id === Number(e.target.value),
+                      (u) => u.id === e.target.value,
                     );
                     if (user) handleAssign(user);
                   }}
@@ -118,13 +139,13 @@ function EditTaskModal({ visible, item, setVisible, onUpdate }: Props) {
             )}
 
             {item.state === "doing" && (
-                <button
-                  type="button"
-                  className="btn btn-success"
-                  onClick={handleComplete}
-                >
-                  Mark as done
-                </button>
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={handleComplete}
+              >
+                Mark as done
+              </button>
             )}
 
             {item.state === "done" && (
